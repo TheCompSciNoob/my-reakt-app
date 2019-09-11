@@ -1,0 +1,11 @@
+.joke-detail {
+    height: 300px;
+    width: 300px;
+    border: 2px solid black;
+    background: white;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
