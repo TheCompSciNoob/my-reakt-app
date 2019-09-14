@@ -1,0 +1,49 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.joke-detail {
+    height: 300px;
+    width: 300px;
+    border: 2px solid black;
+    background: white;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+.nav {
+    display: flex;
+    justify-content: space-around;
+    min-height: 10vh;
+    background: darkblue;
+    color: white;
+}
+
+.nav-links {
+    width: 40%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    list-style: none;
+}
+
+.nav-style {
+    color: white;
+}
+.shop-item {
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/*# sourceMappingURL=main.d4a9a691.css.map*/
