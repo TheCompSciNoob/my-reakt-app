@@ -21,7 +21,7 @@ val ROOT: FunctionalComponent<RProps> = functionalComponent {
             route("/home", exact = true, render = ::home)
             route("/about", exact = true, render = ::about)
             route("/shop", exact = true, render = ::shop)
-            route<IdProps>("/shop/:id", exact = true, render = ::jokeDetail)
+            route("/shop/:id", exact = true, render = ::jokeDetail)
             redirect("/", "/home")
         }
     }
