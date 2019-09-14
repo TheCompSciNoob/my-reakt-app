@@ -18,7 +18,7 @@ class Navigation : RComponent<RProps, RState>() {
                     +"About"
                 }
                 navLink("/shop", className = "nav-style") {
-                    +"Shop"
+                    +"shop"
                 }
             }
         }

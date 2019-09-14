@@ -1,6 +1,6 @@
-package shop
+package util
 
-data class ShopResponse(
+data class JokeResponse(
         val current_page: Int,
         val limit: Int,
         val next_page: Int,

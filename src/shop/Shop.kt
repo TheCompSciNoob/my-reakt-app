@@ -1,57 +1,61 @@
 package shop
 
 import kotlinx.coroutines.*
-import org.w3c.fetch.Headers
-import org.w3c.fetch.RequestInit
+import kotlinx.html.js.onClickFunction
 import react.*
+import react.dom.button
 import react.dom.div
 import react.dom.h1
 import react.dom.ul
 import react.router.dom.navLink
-import kotlin.browser.window
-import kotlin.coroutines.CoroutineContext
+import util.DadJokeApi
+import util.JokeInfo
+import util.JokeResponse
 
-class Shop : RComponent<RProps, ShopState>(), CoroutineScope {
-    override val coroutineContext: CoroutineContext = Job()
+fun RBuilder.shop(): ReactElement = child(SHOP)
 
-    override fun RBuilder.render() {
-        div {
-            h1 { +"Shop Page" }
-            shopInventory()
+val SHOP: FunctionalComponent<RProps> = functionalComponent {
+    val (response, setResponse) = useState<JokeResponse?>(null)
+    useEffectWithCleanup {
+        //fetch shop coroutine
+        val job = if (response == null)
+            GlobalScope.fetchShopAsync(setResponse)
+        else
+            null
+        //clean up
+        return@useEffectWithCleanup {
+            job?.cancel()
         }
     }
 
-    override fun componentDidMount() {
-        fetchShopAsync()
-    }
-
-    override fun componentWillUnmount() {
-        coroutineContext.cancelChildren()
-    }
-
-    private fun fetchShopAsync(): Job = launch {
-        val headers = Headers().apply {
-            append("Accept", "application/json")
+    div {
+        h1 { +"Shop Page" }
+        button {
+            +"Refresh"
+            attrs.onClickFunction = { setResponse(null) }
         }
-        val response = window.fetch(
-                input = "https://icanhazdadjoke.com/search?page=0&limit=5&term=dog",
-                init = RequestInit(headers = headers)
-        ).await()
-        val json = response.text().await()
-        setState { shopResponse = JSON.parse(json) }
+        response?.results?.let(::shopInventory)
     }
+}
 
-    private fun RBuilder.shopInventory() {
-        ul(classes = "shop-item") {
-            state.shopResponse?.results?.forEach {
-                navLink(to = "/shop/${it.id}") {
-                    +it.id
-                }
+private fun RBuilder.shopInventory(inventory: Array<JokeInfo>) {
+    ul(classes = "shop-item") {
+        inventory.forEach {
+            navLink(to = "/Shop/${it.id}") {
+                +it.id
             }
         }
     }
 }
 
-interface ShopState : RState {
-    var shopResponse: ShopResponse?
+private inline fun CoroutineScope.fetchShopAsync(
+        crossinline handler: (JokeResponse) -> Unit
+): Job = launch {
+    val response = DadJokeApi.searchJokes(
+            page = 0,
+            limit = 5,
+            term = "dog"
+    ).await()
+    val json = response.text().await()
+    handler(JSON.parse(json))
 }

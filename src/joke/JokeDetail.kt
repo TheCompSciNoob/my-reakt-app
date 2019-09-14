@@ -1,59 +1,45 @@
 package joke
 
 import kotlinx.coroutines.*
-import org.w3c.fetch.Headers
-import org.w3c.fetch.RequestInit
 import react.*
 import react.dom.div
 import react.dom.h1
 import react.dom.p
-import shop.JokeInfo
-import kotlin.browser.window
-import kotlin.coroutines.CoroutineContext
+import react.router.dom.RouteResultProps
+import root.IdProps
+import util.DadJokeApi
+import util.JokeInfo
 
-class JokeDetail : RComponent<JokeProps, JokeState>(), CoroutineScope {
-    override val coroutineContext: CoroutineContext = Job()
+fun RBuilder.jokeDetail(
+        props: RouteResultProps<IdProps>
+): ReactElement = child(JOKE_DETAIL, props)
 
-    override fun JokeState.init() {
-        jokeInfo = JokeInfo("", "")
-    }
-
-    override fun RBuilder.render() {
-        div(classes = "joke-detail") {
-            h1 { +state.jokeInfo.id }
-            p { +state.jokeInfo.joke }
+val JOKE_DETAIL: FunctionalComponent<RouteResultProps<IdProps>> = functionalComponent { props ->
+    val (info, setInfo) = useState<JokeInfo?>(null)
+    useEffectWithCleanup {
+        val job = if (info == null)
+            GlobalScope.fetchJokeAsync(
+                    id = props.match.params.id,
+                    handler = setInfo
+            )
+        else
+            null
+        return@useEffectWithCleanup {
+            job?.cancel()
         }
     }
 
-    override fun componentDidMount() {
-        fetchJoke()
-    }
-
-    override fun componentWillUnmount() {
-        coroutineContext.cancelChildren()
-    }
-
-    private fun fetchJoke() = launch {
-        val headers = Headers().apply {
-            append("Accept", "application/json")
-        }
-        val query = "https://icanhazdadjoke.com/j/${props.id}"
-        val response = window.fetch(query, RequestInit(headers = headers)).await()
-        val json = response.text().await()
-        setState { jokeInfo = JSON.parse(json) }
+    div(classes = "joke-detail") {
+        h1 { +(info?.id ?: "") }
+        p { +(info?.joke ?: "") }
     }
 }
 
-interface JokeProps : RProps {
-    var id: String
-}
-
-interface JokeState : RState {
-    var jokeInfo: JokeInfo
-}
-
-fun RBuilder.joke(
-        id: String
-): ReactElement = child(JokeDetail::class) {
-    attrs.id = id
+private inline fun CoroutineScope.fetchJokeAsync(
+        id: String,
+        crossinline handler: (JokeInfo) -> Unit
+): Job = launch {
+    val response = DadJokeApi.getJokeById(id).await()
+    val json = response.text().await()
+    handler(JSON.parse(json))
 }

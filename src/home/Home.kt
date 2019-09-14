@@ -1,16 +1,13 @@
 package home
 
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.div
 import react.dom.h1
 
-class Home: RComponent<RProps, RState>() {
-    override fun RBuilder.render() {
-        div {
-            h1 { +"Home Page" }
-        }
+fun RBuilder.home(): ReactElement = child(HOME)
+
+val HOME: FunctionalComponent<RProps> = functionalComponent {
+    div {
+        h1 { +"Home Page" }
     }
 }
