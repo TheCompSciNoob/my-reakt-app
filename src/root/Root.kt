@@ -25,15 +25,8 @@ interface IdProps : RProps {
 }
 
 val ROOT: FunctionalComponent<RProps> = functionalComponent {
-    // CoroutineScope context from index
     val mainScope: CoroutineScope = useContext(MainScopeContext)
-    useEffectWithCleanup(emptyList()) {
-        println("Main scope started.")
-        return@useEffectWithCleanup {
-            println("Main Scope cancelled.")
-            mainScope.cancel()
-        }
-    }
+    useEffectWithCleanup(emptyList()) { { mainScope.cancel() } }
 
     browserRouter {
         navigation()
