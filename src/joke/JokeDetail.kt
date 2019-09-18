@@ -25,7 +25,7 @@ val JOKE_DETAIL: FunctionalComponent<RouteResultProps<IdProps>> = coroutineCompo
 
     val (info, setInfo) = useState<JokeInfo?>(null)
     useEffect(emptyList()) {
-        response?.results?.first { it.id == props.match.params.id }?.let{setInfo}
+        response?.results?.first { it.id == props.match.params.id }?.let(setInfo)
                 ?: uiScope.launch {
                     println("Update info.")
                     val newInfo = fetchJoke(props.match.params.id)

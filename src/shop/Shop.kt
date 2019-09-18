@@ -2,7 +2,9 @@ package shop
 
 import index.MainScopeContext
 import index.ShopContext
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.button
@@ -13,20 +15,19 @@ import react.router.dom.navLink
 import util.DadJokeApi
 import util.JokeInfo
 import util.JokeResponse
+import util.coroutineComponent
 
 fun RBuilder.shop(): ReactElement = child(SHOP)
 
-val SHOP: FunctionalComponent<RProps> = functionalComponent {
-    val mainScope: CoroutineScope = useContext(MainScopeContext) + Job()
+val SHOP: FunctionalComponent<RProps> = coroutineComponent(
+        scopeContext = MainScopeContext
+) { _, uiScope ->
     val (response, setResponse) = useContext(ShopContext)
-    //fetch the shop when this component starts
-    useEffectWithCleanup {
-        val job = if (response == null)
-            mainScope.launch {
-                val shop = fetchShop()
-                setResponse(shop)
-            } else null
-        return@useEffectWithCleanup { job?.cancel() }
+    useEffect {
+        if (response == null) uiScope.launch {
+            val shop = fetchShop()
+            setResponse(shop)
+        }
     }
 
     div {
