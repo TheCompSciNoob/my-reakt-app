@@ -2,7 +2,6 @@ package shop
 
 import index.MainScopeContext
 import index.ShopContext
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
@@ -50,7 +49,7 @@ private fun RBuilder.shopInventory(inventory: Array<JokeInfo>) {
     }
 }
 
-private suspend fun CoroutineScope.fetchShop(): JokeResponse {
+private suspend fun fetchShop(): JokeResponse {
     val response = DadJokeApi.searchJokes(
             page = 0,
             limit = 5,
@@ -59,15 +58,3 @@ private suspend fun CoroutineScope.fetchShop(): JokeResponse {
     val json = response.text().await()
     return JSON.parse(json)
 }
-
-//private inline fun CoroutineScope.fetchShopAsync(
-//        crossinline handler: (JokeResponse) -> Unit
-//): Job = launch {
-//    val response = DadJokeApi.searchJokes(
-//            page = 0,
-//            limit = 5,
-//            term = "dog"
-//    ).await()
-//    val json = response.text().await()
-//    handler(JSON.parse(json))
-//}
