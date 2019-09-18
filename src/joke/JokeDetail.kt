@@ -1,6 +1,10 @@
 package joke
 
-import kotlinx.coroutines.*
+import index.MainScopeContext
+import index.ShopContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 import react.dom.h1
@@ -15,19 +19,18 @@ fun RBuilder.jokeDetail(
 ): ReactElement = child(JOKE_DETAIL, props)
 
 val JOKE_DETAIL: FunctionalComponent<RouteResultProps<IdProps>> = functionalComponent { props ->
+    val mainScope: CoroutineScope = useContext(MainScopeContext)
+    val (response, _) = useContext(ShopContext)
+
     val (info, setInfo) = useState<JokeInfo?>(null)
-    useEffectWithCleanup {
-        val job = if (info == null)
-            GlobalScope.fetchJokeAsync(
-                    id = props.match.params.id,
-                    handler = setInfo
-            )
-        else
-            null
-        return@useEffectWithCleanup {
-            job?.cancel()
-        }
+    useEffect {
+        response?.results?.first { it.id == props.match.params.id }?.let(setInfo)
+                ?: mainScope.launch {
+                    val newInfo = fetchJoke(props.match.params.id)
+                    setInfo(newInfo)
+                }
     }
+
 
     div(classes = "joke-detail") {
         h1 { +(info?.id ?: "") }
@@ -35,11 +38,10 @@ val JOKE_DETAIL: FunctionalComponent<RouteResultProps<IdProps>> = functionalComp
     }
 }
 
-private inline fun CoroutineScope.fetchJokeAsync(
-        id: String,
-        crossinline handler: (JokeInfo) -> Unit
-): Job = launch {
+private suspend fun CoroutineScope.fetchJoke(
+        id: String
+): JokeInfo {
     val response = DadJokeApi.getJokeById(id).await()
     val json = response.text().await()
-    handler(JSON.parse(json))
+    return JSON.parse(json)
 }

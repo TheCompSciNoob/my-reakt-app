@@ -1,6 +1,10 @@
 package shop
 
-import kotlinx.coroutines.*
+import index.MainScopeContext
+import index.ShopContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.button
@@ -15,16 +19,13 @@ import util.JokeResponse
 fun RBuilder.shop(): ReactElement = child(SHOP)
 
 val SHOP: FunctionalComponent<RProps> = functionalComponent {
-    val (response, setResponse) = useState<JokeResponse?>(null)
-    useEffectWithCleanup {
-        //fetch shop coroutine
-        val job = if (response == null)
-            GlobalScope.fetchShopAsync(setResponse)
-        else
-            null
-        //clean up
-        return@useEffectWithCleanup {
-            job?.cancel()
+    val mainScope: CoroutineScope = useContext(MainScopeContext)
+    val (response, setResponse) = useContext(ShopContext)
+    //fetch the shop when this component starts
+    useEffect {
+        if (response == null) mainScope.launch {
+            val shop = fetchShop()
+            setResponse(shop)
         }
     }
 
@@ -48,14 +49,24 @@ private fun RBuilder.shopInventory(inventory: Array<JokeInfo>) {
     }
 }
 
-private inline fun CoroutineScope.fetchShopAsync(
-        crossinline handler: (JokeResponse) -> Unit
-): Job = launch {
+private suspend fun CoroutineScope.fetchShop(): JokeResponse {
     val response = DadJokeApi.searchJokes(
             page = 0,
             limit = 5,
             term = "dog"
     ).await()
     val json = response.text().await()
-    handler(JSON.parse(json))
+    return JSON.parse(json)
 }
+
+//private inline fun CoroutineScope.fetchShopAsync(
+//        crossinline handler: (JokeResponse) -> Unit
+//): Job = launch {
+//    val response = DadJokeApi.searchJokes(
+//            page = 0,
+//            limit = 5,
+//            term = "dog"
+//    ).await()
+//    val json = response.text().await()
+//    handler(JSON.parse(json))
+//}
